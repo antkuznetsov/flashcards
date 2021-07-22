@@ -8,6 +8,7 @@ public class Main {
     private static final Scanner scanner = new Scanner(System.in);
     private static final Map<String, String> data = new LinkedHashMap<>();
     private static final Map<String, Integer> statistics = new HashMap<>();
+    private static final Map<String, String> params = new HashMap<>();
 
     private enum Action {
         ADD("add"),
@@ -39,10 +40,22 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        processParameters(args);
+        if (params.containsKey("import")) {
+            doImport(params.get("import"));
+        }
         while (true) {
             System.out.println("Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):");
             Action action = Action.getByKeyword(scanner.nextLine());
             performAction(action);
+        }
+    }
+
+    private static void processParameters(String[] args) {
+        for (int i = 0; i < args.length; i += 2) {
+            String key = args[i];
+            String value = args[i + 1];
+            params.put(key.substring(1), value);
         }
     }
 
@@ -114,6 +127,10 @@ public class Main {
     private static void importData() {
         System.out.println("File name:");
         String fileName = scanner.nextLine();
+        doImport(fileName);
+    }
+
+    private static void doImport(String fileName) {
         int counter = 0;
         try (Scanner scanner = new Scanner(new File(fileName))) {
             while (scanner.hasNext()) {
@@ -131,8 +148,11 @@ public class Main {
     private static void exportData() {
         System.out.println("File name:");
         String fileName = scanner.nextLine();
-        File file = new File(fileName);
+        doExport(fileName);
+    }
 
+    private static void doExport(String fileName) {
+        File file = new File(fileName);
         try (PrintWriter writer = new PrintWriter(file)) {
             for (var entry : data.entrySet()) {
                 writer.printf("%s;%s;%d%n", entry.getKey(), entry.getValue(), statistics.getOrDefault(entry.getKey(), 0));
@@ -190,6 +210,9 @@ public class Main {
     }
 
     private static void exit() {
+        if (params.containsKey("export")) {
+            doExport(params.get("export"));
+        }
         System.out.println("Bye bye!");
         System.exit(0);
     }
